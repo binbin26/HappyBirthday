@@ -4,7 +4,6 @@ let w = (c.width = window.innerWidth),
   hw = w / 2;
 (hh = h / 2),
   (opts = {
-    // change the text in here //
     strings: ["HAPPY", "BIRTHDAY!", "Hoang Duc"],
     charSize: 30,
     charSpacing: 35,
@@ -44,6 +43,13 @@ let w = (c.width = window.innerWidth),
     balloonAddedVel: 0.4,
     balloonBaseRadian: -(Math.PI / 2 - 0.5),
     balloonAddedRadian: -1,
+
+    // new options for falling stars
+    starCount: 100,
+    starSpeedMin: 2,
+    starSpeedMax: 5,
+    starSizeMin: 1,
+    starSizeMax: 3,
   }),
   (calc = {
     totalWidth:
@@ -53,6 +59,69 @@ let w = (c.width = window.innerWidth),
   (Tau = Math.PI * 2),
   (TauQuarter = Tau / 4),
   (letters = []);
+
+// Flag kiểm soát việc bắt đầu hiệu ứng
+let started = false;
+
+// Tạo nút Play ở giữa màn hình
+const playBtn = document.createElement("button");
+playBtn.textContent = "PLAY";
+playBtn.style.position = "fixed";
+playBtn.style.top = "50%";
+playBtn.style.left = "50%";
+playBtn.style.transform = "translate(-50%, -50%)";
+playBtn.style.fontSize = "48px";
+playBtn.style.padding = "20px 40px";
+playBtn.style.cursor = "pointer";
+playBtn.style.zIndex = "1000";
+document.body.appendChild(playBtn);
+
+// Tạo âm thanh, chỉnh sửa đường dẫn file âm thanh bên dưới
+const audio = new Audio('see-you-again-218319'); // <-- Thay 'sounds/your-sound-file.mp3' thành đường dẫn file âm thanh của bạn
+audio.volume = 0.3;
+audio.loop = true;
+
+// Mảng sao rơi (falling stars)
+const stars = [];
+function createStar() {
+  return {
+    x: Math.random() * w,
+    y: Math.random() * h,
+    size: opts.starSizeMin + Math.random() * (opts.starSizeMax - opts.starSizeMin),
+    speed: opts.starSpeedMin + Math.random() * (opts.starSpeedMax - opts.starSpeedMin),
+    length: 10 + Math.random() * 20,
+  };
+}
+for (let i = 0; i < opts.starCount; i++) {
+  stars.push(createStar());
+}
+
+// Hàm vẽ sao rơi
+function drawStars() {
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 2;
+  stars.forEach(star => {
+    ctx.beginPath();
+    ctx.moveTo(star.x, star.y);
+    ctx.lineTo(star.x - star.length * 0.5, star.y + star.length);
+    ctx.stroke();
+
+    // Cập nhật vị trí sao rơi
+    star.x -= star.speed * 0.5;
+    star.y += star.speed;
+
+    // Reset sao khi ra khỏi màn hình
+    if (star.x < 0 || star.y > h) {
+      star.x = Math.random() * w + w;
+      star.y = Math.random() * -20;
+      star.size = opts.starSizeMin + Math.random() * (opts.starSizeMax - opts.starSizeMin);
+      star.speed = opts.starSpeedMin + Math.random() * (opts.starSpeedMax - opts.starSpeedMin);
+      star.length = 10 + Math.random() * 20;
+    }
+  });
+}
+
+// Các phần còn lại của class Letter, Shard, generateBalloonPath ... giữ nguyên, không đổi
 
 ctx.font = opts.charSize + "px Verdana";
 
@@ -193,209 +262,245 @@ Letter.prototype.step = function () {
 
       ++this.tick2;
       var proportion = this.tick2 / this.circleFadeTime,
-        armonic = -Math.cos(proportion * Math.PI) / 2 + 0.5;
+        armonic = 1 - (-Math.cos(proportion * Math.PI) / 2 + 0.5);
 
       ctx.beginPath();
       ctx.fillStyle = this.lightAlphaColor
-        .replace("light", 100)
-        .replace("alp", 1 - armonic);
-      ctx.arc(this.x, this.y, this.circleFinalSize, 0, Tau);
+        .replace("light", 50 + 50 * proportion)
+        .replace("alp", armonic);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, (1 - armonic) * this.circleFinalSize, 0, Tau);
       ctx.fill();
 
-      if (this.tick2 >= this.circleFadeTime) this.circleFading = false;
+      if (this.tick2 > this.circleFadeTime) {
+        this.tick2 = 0;
+        this.circleFading = false;
+      }
     } else {
       ctx.fillStyle = this.lightColor.replace("light", 70);
       ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
+
+      if (this.tick > opts.letterContemplatingWaitTime) {
+        this.phase = "done";
+
+        for (var i = 0; i < this.shards.length; ++i) {
+          this.shards[i].tick = i * 4;
+        }
+      }
     }
+  } else {
+    var allDone = true;
 
     for (var i = 0; i < this.shards.length; ++i) {
       this.shards[i].step();
 
-      if (!this.shards[i].alive) {
-        this.shards.splice(i, 1);
-        --i;
-      }
+      if (!this.shards[i].done) allDone = false;
     }
 
-    if (this.tick > opts.letterContemplatingWaitTime) {
-      this.phase = "balloon";
-
+    if (allDone) {
+      this.phase = "done2";
       this.tick = 0;
-      this.spawning = true;
-      this.spawnTime = (opts.balloonSpawnTime * Math.random()) | 0;
-      this.inflating = false;
-      this.inflateTime =
-        (opts.balloonBaseInflateTime +
-          opts.balloonAddedInflateTime * Math.random()) |
-        0;
-      this.size =
-        (opts.balloonBaseSize + opts.balloonAddedSize * Math.random()) | 0;
-
-      var rad =
-          opts.balloonBaseRadian + opts.balloonAddedRadian * Math.random(),
-        vel = opts.balloonBaseVel + opts.balloonAddedVel * Math.random();
-
-      this.vx = Math.cos(rad) * vel;
-      this.vy = Math.sin(rad) * vel;
-    }
-  } else if (this.phase === "balloon") {
-    ctx.strokeStyle = this.lightColor.replace("light", 80);
-
-    if (this.spawning) {
-      ++this.tick;
-      ctx.fillStyle = this.lightColor.replace("light", 70);
-      ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
-
-      if (this.tick >= this.spawnTime) {
-        this.tick = 0;
-        this.spawning = false;
-        this.inflating = true;
-      }
-    } else if (this.inflating) {
-      ++this.tick;
-
-      var proportion = this.tick / this.inflateTime,
-        x = (this.cx = this.x),
-        y = (this.cy = this.y - this.size * proportion);
-
-      ctx.fillStyle = this.alphaColor.replace("alp", proportion);
-      ctx.beginPath();
-      generateBalloonPath(x, y, this.size * proportion);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x, this.y);
-      ctx.stroke();
-
-      ctx.fillStyle = this.lightColor.replace("light", 70);
-      ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
-
-      if (this.tick >= this.inflateTime) {
-        this.tick = 0;
-        this.inflating = false;
-      }
-    } else {
-      this.cx += this.vx;
-      this.cy += this.vy += opts.upFlow;
-
-      ctx.fillStyle = this.color;
-      ctx.beginPath();
-      generateBalloonPath(this.cx, this.cy, this.size);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(this.cx, this.cy);
-      ctx.lineTo(this.cx, this.cy + this.size);
-      ctx.stroke();
-
-      ctx.fillStyle = this.lightColor.replace("light", 70);
-      ctx.fillText(this.char, this.cx + this.dx, this.cy + this.dy + this.size);
-
-      if (this.cy + this.size < -hh || this.cx < -hw || this.cy > hw)
-        this.phase = "done";
     }
   }
 };
+Letter.prototype.done = false;
+
 function Shard(x, y, vx, vy, color) {
-  var vel =
-    opts.fireworkShardBaseVel + opts.fireworkShardAddedVel * Math.random();
-
-  this.vx = vx * vel;
-  this.vy = vy * vel;
-
   this.x = x;
   this.y = y;
-
-  this.prevPoints = [[x, y]];
+  this.vx = vx;
+  this.vy = vy;
   this.color = color;
 
-  this.alive = true;
-
+  this.tick = 0;
+  this.prevPoints = [[x, y, 1]];
   this.size =
     opts.fireworkShardBaseSize + opts.fireworkShardAddedSize * Math.random();
+  this.vel =
+    opts.fireworkShardBaseVel + opts.fireworkShardAddedVel * Math.random();
+  this.done = false;
 }
 Shard.prototype.step = function () {
-  this.x += this.vx;
-  this.y += this.vy += opts.gravity;
+  if (this.done) return;
+
+  ++this.tick;
+
+  this.vy += opts.gravity;
+  this.vx *= 0.98;
+  this.vy *= 0.98;
+
+  this.x += this.vx * this.vel;
+  this.y += this.vy * this.vel;
+
+  this.prevPoints.push([this.x, this.y, this.size]);
 
   if (this.prevPoints.length > opts.fireworkShardPrevPoints)
     this.prevPoints.shift();
 
-  this.prevPoints.push([this.x, this.y]);
+  var lineWidthProportion = 1 / (this.prevPoints.length - 1);
 
-  var lineWidthProportion = this.size / this.prevPoints.length;
+  for (var i = 1; i < this.prevPoints.length; ++i) {
+    var point = this.prevPoints[i],
+      point2 = this.prevPoints[i - 1];
 
-  for (var k = 0; k < this.prevPoints.length - 1; ++k) {
-    var point = this.prevPoints[k],
-      point2 = this.prevPoints[k + 1];
-
-    ctx.strokeStyle = this.color.replace("alp", k / this.prevPoints.length);
-    ctx.lineWidth = k * lineWidthProportion;
+    ctx.strokeStyle = this.color.replace("alp", i / this.prevPoints.length);
+    ctx.lineWidth = point[2] * lineWidthProportion * i;
     ctx.beginPath();
     ctx.moveTo(point[0], point[1]);
     ctx.lineTo(point2[0], point2[1]);
     ctx.stroke();
   }
 
-  if (this.prevPoints[0][1] > hh) this.alive = false;
+  if (this.y > h) {
+    this.done = true;
+  }
 };
-function generateBalloonPath(x, y, size) {
-  ctx.moveTo(x, y);
-  ctx.bezierCurveTo(
-    x - size / 2,
-    y - size / 2,
-    x - size / 4,
-    y - size,
-    x,
-    y - size
-  );
-  ctx.bezierCurveTo(x + size / 4, y - size, x + size / 2, y - size / 2, x, y);
+
+function generateBalloonPath(radius, inflation) {
+  var inflation = inflation || 0;
+
+  var cp1 = [0, radius / 2],
+    cp2 = [radius, radius * 1.5],
+    cp3 = [radius, radius * 2 + inflation],
+    cp4 = [0, radius * 2 + inflation],
+    cp5 = [radius / 2, radius * 1.5],
+    cp6 = [0, radius];
+
+  var path = new Path2D();
+
+  path.moveTo(0, 0);
+  path.bezierCurveTo(cp1[0], cp1[1], cp2[0], cp2[1], cp3[0], cp3[1]);
+  path.bezierCurveTo(cp4[0], cp4[1], cp5[0], cp5[1], cp6[0], cp6[1]);
+  path.closePath();
+
+  return path;
 }
 
-function anim() {
-  window.requestAnimationFrame(anim);
+var balloons = [],
+  balloonTick = 0;
 
-  ctx.fillStyle = "#111";
+function Balloon() {
+  this.spawned = false;
+  this.tick = 0;
+
+  this.inflationTime =
+    (opts.balloonBaseInflateTime + opts.balloonAddedInflateTime * Math.random()) |
+    0;
+  this.radius = opts.balloonBaseSize + opts.balloonAddedSize * Math.random();
+  this.vel = opts.balloonBaseVel + opts.balloonAddedVel * Math.random();
+  this.radian = opts.balloonBaseRadian + opts.balloonAddedRadian * Math.random();
+
+  this.x = Math.random() * w;
+  this.y = h + this.radius * 2;
+
+  this.path = generateBalloonPath(this.radius);
+
+  this.color = "hsl(hue,90%,65%)".replace("hue", Math.random() * 360);
+  this.strokeColor = "hsl(hue,90%,55%)".replace("hue", Math.random() * 360);
+}
+Balloon.prototype.step = function () {
+  if (!this.spawned) {
+    ++this.tick;
+    if (this.tick >= this.inflationTime) {
+      this.tick = 0;
+      this.spawned = true;
+    }
+  } else {
+    this.x += Math.cos(this.radian) * this.vel;
+    this.y += Math.sin(this.radian) * this.vel;
+
+    if (this.y + this.radius < 0) {
+      this.spawned = false;
+      this.tick = 0;
+      this.x = Math.random() * w;
+      this.y = h + this.radius * 2;
+    }
+  }
+
+  ctx.fillStyle = this.color;
+  ctx.strokeStyle = this.strokeColor;
+  ctx.lineWidth = 2;
+
+  ctx.save();
+  ctx.translate(this.x, this.y);
+  ctx.fill(this.path);
+  ctx.stroke(this.path);
+  ctx.restore();
+};
+
+function initLetters() {
+  letters = [];
+  for (var i = 0; i < opts.strings.length; ++i) {
+    var str = opts.strings[i],
+      y = opts.cy + i * opts.lineHeight - opts.lineHeight;
+    for (var j = 0; j < str.length; ++j) {
+      letters.push(
+        new Letter(
+          str[j],
+          j * opts.charSpacing -
+            (str.length * opts.charSpacing) / 2 +
+            opts.charSpacing / 2,
+          y
+        )
+      );
+    }
+  }
+}
+initLetters();
+
+function spawnBalloons() {
+  balloons.push(new Balloon());
+}
+
+function animate() {
+  if (!started) {
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "white";
+    ctx.font = "40px Verdana";
+    ctx.textAlign = "center";
+    ctx.fillText("Click PLAY to start the celebration!", hw, hh);
+    requestAnimationFrame(animate);
+    return;
+  }
+
+  ctx.fillStyle = "#000011";
   ctx.fillRect(0, 0, w, h);
 
-  ctx.translate(hw, hh);
+  // Vẽ hiệu ứng sao rơi
+  drawStars();
 
-  var done = true;
-  for (var l = 0; l < letters.length; ++l) {
-    letters[l].step();
-    if (letters[l].phase !== "done") done = false;
+  // Vẽ các bóng bay
+  balloonTick++;
+  if (balloonTick > opts.balloonSpawnTime) {
+    balloonTick = 0;
+    spawnBalloons();
   }
+  balloons.forEach(b => b.step());
 
-  ctx.translate(-hw, -hh);
+  // Vẽ từng chữ cái pháo hoa
+  letters.forEach(l => l.step());
 
-  if (done) for (var l = 0; l < letters.length; ++l) letters[l].reset();
+  requestAnimationFrame(animate);
 }
 
-for (let i = 0; i < opts.strings.length; ++i) {
-  for (var j = 0; j < opts.strings[i].length; ++j) {
-    letters.push(
-      new Letter(
-        opts.strings[i][j],
-        j * opts.charSpacing +
-          opts.charSpacing / 2 -
-          (opts.strings[i].length * opts.charSize) / 2,
-        i * opts.lineHeight +
-          opts.lineHeight / 2 -
-          (opts.strings.length * opts.lineHeight) / 2
-      )
-    );
-  }
-}
+animate();
 
-anim();
+playBtn.addEventListener("click", () => {
+  started = true;
+  audio.play().catch(() => {}); // Bắt lỗi nếu trình duyệt chặn tự động phát âm thanh
+  playBtn.style.display = "none";
+});
 
-window.addEventListener("resize", function () {
+// Xử lý khi resize màn hình
+window.addEventListener("resize", () => {
   w = c.width = window.innerWidth;
   h = c.height = window.innerHeight;
-
+  opts.cx = w / 2;
+  opts.cy = h / 2;
   hw = w / 2;
   hh = h / 2;
-
-  ctx.font = opts.charSize + "px Verdana";
+  calc.totalWidth =
+    opts.charSpacing *
+    Math.max(opts.strings[0].length, opts.strings[1].length);
+  initLetters();
 });
