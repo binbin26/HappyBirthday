@@ -77,7 +77,7 @@ playBtn.style.zIndex = "1000";
 document.body.appendChild(playBtn);
 
 // Tạo âm thanh, chỉnh sửa đường dẫn file âm thanh bên dưới
-const audio = new Audio('see-you-again-218319'); // <-- Thay 'sounds/your-sound-file.mp3' thành đường dẫn file âm thanh của bạn
+const audio = new Audio('see-you-again-218319.mp3'); // <-- Thay 'sounds/your-sound-file.mp3' thành đường dẫn file âm thanh của bạn
 audio.volume = 0.3;
 audio.loop = true;
 
