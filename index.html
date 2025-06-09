@@ -1036,14 +1036,17 @@
                 const photoFrame = document.createElement('div');
                 photoFrame.classList.add('photo-frame');
                 
-// PHẦN CODE MỚI SỬA LỖI
-const photoElement = document.createElement('img'); // Sử dụng thẻ IMG thay vì DIV
-photoElement.classList.add('photo');
-photoElement.src = photo.imageUrl; // Sử dụng URL ảnh từ đối tượng photo
-photoElement.alt = photo.caption; // Thêm alt text cho ảnh
-photoElement.style.objectFit = 'cover'; // Đảm bảo ảnh phủ kín khung
-photoElement.style.width = '100%';
-photoElement.style.height = '100%';
+                // PHẦN CODE CŨ CẦN THAY THẾ
+                const photoElement = document.createElement('div');
+                photoElement.classList.add('photo');
+
+                // For now, use a colored background with emoji as placeholder
+                // In Canva, you'll replace this with your actual image
+                const emojis = ['👸', '💃', '👩‍🎓', '🌸'];
+                photoElement.innerHTML = `<div class="flex items-center justify-center w-full h-full text-6xl bg-gradient-to-br from-gray-700 to-gray-900">${emojis[index]}</div>`;
+
+                // Add a comment to indicate where to replace with actual image
+                photoElement.setAttribute('data-info', `Replace this with your "${photo.caption}" photo in Canva`);
                 
                 photoFrame.appendChild(photoElement);
                 
