@@ -1040,10 +1040,14 @@
                 const photoElement = document.createElement('div');
                 photoElement.classList.add('photo');
                 
-                // For now, use a colored background with emoji as placeholder
-                // In Canva, you'll replace this with your actual image
-                const emojis = ['👸', '💃', '👩‍🎓', '🌸'];
-                photoElement.innerHTML = `<div class="flex items-center justify-center w-full h-full text-6xl bg-gradient-to-br from-gray-700 to-gray-900">${emojis[index]}</div>`;
+                const img = document.createElement('img');
+                img.src = photo.imageUrl;
+                img.alt = photo.caption;
+                img.style.width = "100%";
+                img.style.height = "100%";
+                img.style.objectFit = "cover"; // hoặc "contain" nếu muốn toàn bộ ảnh nằm gọn
+                photoElement.appendChild(img);
+
                 
                 // Add a comment to indicate where to replace with actual image
                 photoElement.setAttribute('data-info', `Replace this with your "${photo.caption}" photo in Canva`);
