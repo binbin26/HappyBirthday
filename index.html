@@ -589,6 +589,7 @@
         }
     </style>
 </head>
+    <audio id="bg-music" src="seeyouagain.mp3" loop></audio>
 <body class="flex items-center justify-center">
     <div class="card flex flex-col items-center justify-center p-8 relative">
         <!-- Background elements -->
@@ -963,7 +964,9 @@
             // Transition effect
             const overlay = document.getElementById('transition-overlay');
             overlay.style.opacity = '1';
-            
+            const audio = document.getElementById('bg-music');
+            audio.play().catch((e) => {
+            console.log('Phát nhạc thất bại:', e);
             setTimeout(() => {
                 // Hide birthday card
                 document.getElementById('birthday-card').style.display = 'none';
