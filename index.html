@@ -696,7 +696,7 @@
             <div class="back-button" onclick="hideMemories()">← Back</div>
             <div class="photo-counter">1 / 4</div>
             
-            <h2 class="gold-text text-3xl mb-4">Your GirlsGirls</h2>
+            <h2 class="gold-text text-3xl mb-4">Our Memories</h2>
             
             <div class="photo-container" id="photo-container">
                 <!-- Photos will be added dynamically -->
@@ -705,7 +705,7 @@
             <div class="carousel-controls">
                 <div class="carousel-button" onclick="prevPhoto()">←</div>
                 <div class="carousel-button" onclick="nextPhoto()">→</div>
-                <div class="button ml-4" onclick="showFinale()">End</div>
+                <div class="button ml-4" onclick="showFinale()">FINALE</div>
             </div>
         </div>
         
@@ -734,22 +734,22 @@
             { 
                 caption: "Tu Nhu", 
                 // This is a placeholder - in Canva, you'll replace this with your actual image
-                imageUrl: "Tu Nhu.jpg"
+                imageUrl: "placeholder-image-1.jpg"
             },
             { 
                 caption: "Nhu An", 
                 // This is a placeholder - in Canva, you'll replace this with your actual image
-                imageUrl: "Nhu An.jpg"
+                imageUrl: "placeholder-image-2.jpg"
             },
             { 
                 caption: "Chau", 
                 // This is a placeholder - in Canva, you'll replace this with your actual image
-                imageUrl: "Chau.jpg"
+                imageUrl: "placeholder-image-3.jpg"
             },
             { 
                 caption: "Thanh Ha", 
                 // This is a placeholder - in Canva, you'll replace this with your actual image
-                imageUrl: "Thanh Ha.png"
+                imageUrl: "placeholder-image-4.jpg"
             }
         ];
         
@@ -1036,15 +1036,15 @@
                 const photoFrame = document.createElement('div');
                 photoFrame.classList.add('photo-frame');
                 
-                // PHẦN CODE CŨ CẦN THAY THẾ
+                // Create photo
                 const photoElement = document.createElement('div');
                 photoElement.classList.add('photo');
-
+                
                 // For now, use a colored background with emoji as placeholder
                 // In Canva, you'll replace this with your actual image
                 const emojis = ['👸', '💃', '👩‍🎓', '🌸'];
                 photoElement.innerHTML = `<div class="flex items-center justify-center w-full h-full text-6xl bg-gradient-to-br from-gray-700 to-gray-900">${emojis[index]}</div>`;
-
+                
                 // Add a comment to indicate where to replace with actual image
                 photoElement.setAttribute('data-info', `Replace this with your "${photo.caption}" photo in Canva`);
                 
@@ -1520,5 +1520,5 @@
             return colors[Math.floor(Math.random() * colors.length)];
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94d19d03970a883a',t:'MTc0OTQ4MjQzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94d1d38364ed883a',t:'MTc0OTQ4NDY2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
